@@ -1,0 +1,71 @@
+---
+# File to config rasberry pis
+# references
+# https://www.raspberrypi.org/documentation/configuration/config-txt/
+# you need to copy your ssh keys to the pi in order for this to work
+# ansible-playbook -i inventories/hosts -u pi config_pi.yml
+- hosts: pis
+  become: yes
+  gather_facts: true
+
+
+  pre_tasks:
+    - name: Set Timezone to America/New_York
+      timezone:
+        name: America/New_York
+
+    - name: Install system packages
+      package:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - wget
+        - nano
+        - curl
+        - rsync
+        - vim
+        - git
+        - zip
+
+  # Role inspired by: https://www.youtube.com/watch?v=vjWGQDqUn2c&t
+  # this worked for me
+  # Some config borrowed from here:
+  # Source: https://raspberrypi.stackexchange.com/questions/28907/how-could-one-automate-the-raspbian-raspi-config-setup
+  tasks:
+
+    - name: copy .bash_profile to ~/
+      copy:
+        src: .bash_profile
+        dest: /home/pi/
+
+    # This is required for steamlink to work correctly
+    - name: Enable boot wait, Allows network to connect before pi loads OS
+      become: yes
+      command: raspi-config nonint do_boot_wait 0
+
+    # https://www.raspberrypi.org/documentation/configuration/config-txt/memory.md
+    # recommended for smooth operation of steamlink
+    - name: Set GPU Memory to 512
+      become: yes
+      blockinfile:
+        path: /boot/config.txt
+        block: |
+          gpu_mem_1024=512
+
+    - name: install steamlink
+      package:
+          name: steamlink
+          state: present
+          update_cache: yes
+
+    - name: enable steamlink autostart
+      become: yes
+      blockinfile:
+        path: /etc/xdg/lxsession/LXDE-pi/autostart
+        block: |
+          steamlink
+
+  post_tasks:
+    - name: reboot PIs
+      reboot:
