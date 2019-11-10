@@ -1,0 +1,20 @@
+---
+# Overclock Reference: https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md
+# Overclock is not required for steamlink, but it does boost performance.
+- name: "Adding Overclock profile for Pi Model {{ pi_model }}"
+  become: yes
+  blockinfile:
+    path: /boot/config.txt
+    block: |
+      # gpu settings for steamlink
+      gpu_mem_1024=512
+
+      # Overclock setttings for Pi 3b+
+      force_turbo=1
+      arm_freq=1500
+      gpu_freq=500
+      sdram_freq=500
+      sdram_schmoo=0x02000020
+      over_voltage=6
+      over_voltage_sdram=2
+  when: pi_model == '3b+'

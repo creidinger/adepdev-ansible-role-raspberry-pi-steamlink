@@ -1,5 +1,7 @@
 # Steamlink setup for Raspberry Pi
-This script Automates the setup for steamlink on a raspberrypi.
+This script Automates the setup for steamlink on a raspberrypi. In addition, i've added an overclock profile to the PI. If you don't want to overlcock your pi, please disable it by changing
+`overclock: no`
+in the config_pi.yml file
 
 ---
 ## Requirements

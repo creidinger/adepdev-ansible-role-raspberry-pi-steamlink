@@ -12,8 +12,19 @@
   become: yes
   gather_facts: true
 
+  vars:
+    - hostname: steamlink-pi # How this will show up on your router
+    - overclock: yes # Whether or not you want to overclock the PI.
+    # versions: zero, 3a+, 3b, 3b+, 4b, etc
+    # I don't have a profile for every PI
+    - pi_model: 3b+ # Used to select the overclock profile
+
 
   pre_tasks:
+    - debug:
+        msg: "WARNING!!! Adding Overclock profile for pi model {{ pi_model }}... Make sure a heatsync and fan are installed!"
+      when: overclock
+
     - name: Set Timezone to America/New_York
       timezone:
         name: America/New_York
@@ -38,16 +49,23 @@
   # Some config borrowed from here:
   # Source: https://raspberrypi.stackexchange.com/questions/28907/how-could-one-automate-the-raspbian-raspi-config-setup
   tasks:
-
     - name: copy .bash_profile to ~/
       copy:
         src: .bash_profile
         dest: /home/pi/
+        force: yes
+
+    - name: Update Hostname of the Pi
+      template:
+        src: hostname.j2
+        dest: /etc/hostname
+        force: yes
 
     - name: copy overclock_profiles.txt to ~/
       copy:
         src: overclock_profiles.txt
         dest: /home/pi/
+        force: yes
 
     # This is required for steamlink to work correctly
     - name: Enable boot wait, Allows network to connect before pi loads OS
@@ -56,10 +74,9 @@
 
     # https://www.raspberrypi.org/documentation/configuration/config-txt/memory.md
     # Boostig gpu_mem is recommended for smooth operation of steamlink
-    #
-    # Overclock Reference: https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md
-    # Overclock is not required for steamlink, but it does boost performance.
-    - name: WARNING!!! Adjusting GPU Memory and implementing Overclock settings... Make sure a Heatsink and fan are installed!
+    # If overclocking this setting will be overwritten,
+    # therefore, we add this to each overclock profile
+    - name: Adjusting GPU Memory
       become: yes
       blockinfile:
         path: /boot/config.txt
@@ -67,14 +84,8 @@
           # gpu settings for steamlink
           gpu_mem_1024=512
 
-          # Overclock setttings for Pi 3b+
-          force_turbo=1
-          arm_freq=1500
-          gpu_freq=500
-          sdram_freq=500
-          sdram_schmoo=0x02000020
-          over_voltage=6
-          over_voltage_sdram=2
+    - include: overclock.yml
+      when: overclock
 
     - name: install steamlink
       package:
