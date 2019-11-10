@@ -3,7 +3,11 @@
 # references
 # https://www.raspberrypi.org/documentation/configuration/config-txt/
 # you need to copy your ssh keys to the pi in order for this to work
+#
+# Run the command below
 # ansible-playbook -i inventories/hosts -u pi config_pi.yml
+# You must cd to the Ansible directory
+
 - hosts: pis
   become: yes
   gather_facts: true
@@ -27,6 +31,7 @@
         - vim
         - git
         - zip
+        - sysbench # for overclocking
 
   # Role inspired by: https://www.youtube.com/watch?v=vjWGQDqUn2c&t
   # this worked for me
@@ -39,19 +44,37 @@
         src: .bash_profile
         dest: /home/pi/
 
+    - name: copy overclock_profiles.txt to ~/
+      copy:
+        src: overclock_profiles.txt
+        dest: /home/pi/
+
     # This is required for steamlink to work correctly
     - name: Enable boot wait, Allows network to connect before pi loads OS
       become: yes
       command: raspi-config nonint do_boot_wait 0
 
     # https://www.raspberrypi.org/documentation/configuration/config-txt/memory.md
-    # recommended for smooth operation of steamlink
-    - name: Set GPU Memory to 512
+    # Boostig gpu_mem is recommended for smooth operation of steamlink
+    #
+    # Overclock Reference: https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md
+    # Overclock is not required for steamlink, but it does boost performance.
+    - name: WARNING!!! Adjusting GPU Memory and implementing Overclock settings... Make sure a Heatsink and fan are installed!
       become: yes
       blockinfile:
         path: /boot/config.txt
         block: |
+          # gpu settings for steamlink
           gpu_mem_1024=512
+
+          # Overclock setttings for Pi 3b+
+          force_turbo=1
+          arm_freq=1500
+          gpu_freq=500
+          sdram_freq=500
+          sdram_schmoo=0x02000020
+          over_voltage=6
+          over_voltage_sdram=2
 
     - name: install steamlink
       package:

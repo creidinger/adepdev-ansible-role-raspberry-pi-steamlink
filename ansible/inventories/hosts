@@ -1,2 +1,6 @@
+# Run the command below
+# ansible-playbook -i inventories/hosts -u pi config_pi.yml
+# You must cd to the Ansible directory
+
 [pis]
 10.0.0.69
