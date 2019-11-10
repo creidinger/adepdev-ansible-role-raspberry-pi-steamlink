@@ -13,11 +13,16 @@
   gather_facts: true
 
   vars:
-    - hostname: steamlink-pi # How this will show up on your router
-    - overclock: yes # Whether or not you want to overclock the PI.
+    # How this will show up on your router
+    - hostname: steamlink-pi
+    - overclock: yes
     # versions: zero, 3a+, 3b, 3b+, 4b, etc
     # I don't have a profile for every PI
-    - pi_model: 3b+ # Used to select the overclock profile
+    #
+    # Used to select the overclock profile
+    # this value is also appened to hostname; however, hostname
+    # doesn't accept special characters
+    - pi_model: 3bplus
 
 
   pre_tasks:

@@ -17,4 +17,4 @@
       sdram_schmoo=0x02000020
       over_voltage=6
       over_voltage_sdram=2
-  when: pi_model == '3b+'
+  when: pi_model == '3bplus'
